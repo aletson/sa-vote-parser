@@ -23,7 +23,8 @@ class Awful extends CI_Model
         $html->loadHTML($data);
         $xpath = new DOMXPath($html);
 		$xpath_nextpage = $xpath->query('//a[@title="Next page"]'); //does the next page button exist
-		while(($xpath_nextpage->length || $page == 1) && $page < 150) {
+		$process_page = 1;
+		while(($process_page != 0 || $page == 1) && $page < 150) {
 			$xpath_query = $xpath->query('//div[@id="thread"]/table[contains(@class, "post")]');
 			$post_num = 0;
 			foreach($xpath_query as $post) {
@@ -68,12 +69,16 @@ class Awful extends CI_Model
 				}
 			}
 			$page++;
-			$data = $this->fetch_page($threadid, $page);
-			$html = new DOMDocument;
-			libxml_use_internal_errors(true);
-			$html->loadHTML($data);
-			$xpath = new DOMXPath($html);
-			$xpath_nextpage = $xpath->query('//a[@title="Next page"]');
+			if($xpath_nextpage->length) {
+				$data = $this->fetch_page($threadid, $page);
+				$html = new DOMDocument;
+				libxml_use_internal_errors(true);
+				$html->loadHTML($data);
+				$xpath = new DOMXPath($html);
+				$xpath_nextpage = $xpath->query('//a[@title="Next page"]');
+			} else {
+				$process_page = 0;
+			}
 		}
 		if($page > 150) {
 			//Thread too long! Stop parsing, return an error.
